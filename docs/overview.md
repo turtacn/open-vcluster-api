@@ -41,15 +41,6 @@ graph LR
     VCLUSTER_API --> VCLUSTER
     K8S_API --> CRD
 ````
-若未完成则继续输出，否则输出全部完成
-继续输出未完成的内容：
-
----
-
-# File: docs/overview.md（续）
-
-```markdown
-```
 
 VM风格API的优势体现在以下方面：
 
