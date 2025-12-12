@@ -1,0 +1,952 @@
+// Copyright (c) 2024 turtacn
+// SPDX-License-Identifier: MIT
+
+syntax = "proto3";
+
+package vcluster.api.v1;
+
+option go_package = "github.com/turtacn/open-vcluster-api/api/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+
+// ============================================================================
+// VClusterService - 虚拟集群管理服务
+// ============================================================================
+
+// VClusterService provides VM-like APIs for managing virtual Kubernetes clusters.
+// This service abstracts vcluster operations into familiar IaaS-style semantics
+// while preserving vcluster's cloud-native characteristics.
+service VClusterService {
+  // CreateVCluster creates a new virtual Kubernetes cluster.
+  // Similar to VM provisioning, but creates a vcluster control plane.
+  rpc CreateVCluster(CreateVClusterRequest) returns (CreateVClusterResponse);
+
+  // GetVCluster retrieves details of a specific virtual cluster.
+  rpc GetVCluster(GetVClusterRequest) returns (GetVClusterResponse);
+
+  // ListVClusters lists all virtual clusters with pagination support.
+  rpc ListVClusters(ListVClustersRequest) returns (ListVClustersResponse);
+
+  // UpdateVCluster updates an existing virtual cluster's configuration.
+  rpc UpdateVCluster(UpdateVClusterRequest) returns (UpdateVClusterResponse);
+
+  // DeleteVCluster deletes a virtual cluster and all its resources.
+  rpc DeleteVCluster(DeleteVClusterRequest) returns (DeleteVClusterResponse);
+
+  // ScaleVCluster adjusts the resource allocation of a virtual cluster.
+  // Similar to VM resizing, but modifies resource quotas and control-plane specs.
+  rpc ScaleVCluster(ScaleVClusterRequest) returns (ScaleVClusterResponse);
+
+  // SuspendVCluster suspends a running virtual cluster.
+  // Unlike VM power-off, this scales down control-plane pods and optionally drains workloads.
+  rpc SuspendVCluster(SuspendVClusterRequest) returns (SuspendVClusterResponse);
+
+  // ResumeVCluster resumes a suspended virtual cluster.
+  // Restores control-plane pods and reconciles workload state.
+  rpc ResumeVCluster(ResumeVClusterRequest) returns (ResumeVClusterResponse);
+
+  // SnapshotVCluster creates a point-in-time snapshot of a virtual cluster.
+  // Captures etcd state and metadata, not disk images like VM snapshots.
+  rpc SnapshotVCluster(SnapshotVClusterRequest) returns (SnapshotVClusterResponse);
+
+  // RestoreVCluster restores a virtual cluster from a snapshot.
+  rpc RestoreVCluster(RestoreVClusterRequest) returns (RestoreVClusterResponse);
+
+  // GetVClusterKubeconfig retrieves the kubeconfig for accessing a virtual cluster.
+  rpc GetVClusterKubeconfig(GetVClusterKubeconfigRequest) returns (GetVClusterKubeconfigResponse);
+
+  // WatchVCluster streams real-time updates for a virtual cluster.
+  rpc WatchVCluster(WatchVClusterRequest) returns (stream WatchVClusterResponse);
+}
+
+// ============================================================================
+// Core Resource Messages
+// ============================================================================
+
+// VCluster represents a virtual Kubernetes cluster.
+// This is the primary resource managed by the VClusterService.
+message VCluster {
+  // Unique identifier for the vcluster.
+  string id = 1;
+
+  // Human-readable name of the vcluster.
+  // Must be unique within a namespace.
+  string name = 2;
+
+  // Kubernetes namespace where the vcluster is deployed on the host cluster.
+  string namespace = 3;
+
+  // Desired state specification.
+  VClusterSpec spec = 4;
+
+  // Current observed state.
+  VClusterStatus status = 5;
+
+  // User-defined labels for organization and filtering.
+  map<string, string> labels = 6;
+
+  // System-managed annotations.
+  map<string, string> annotations = 7;
+
+  // Timestamp when the vcluster was created.
+  google.protobuf.Timestamp create_time = 8;
+
+  // Timestamp when the vcluster was last updated.
+  google.protobuf.Timestamp update_time = 9;
+
+  // Timestamp when the vcluster was deleted (for soft-delete scenarios).
+  google.protobuf.Timestamp delete_time = 10;
+
+  // Owner reference for multi-tenancy.
+  string owner = 11;
+
+  // Project or team identifier.
+  string project = 12;
+}
+
+// VClusterSpec defines the desired state of a virtual cluster.
+message VClusterSpec {
+  // Kubernetes version for the virtual cluster.
+  // Example: "1.28.0", "1.27.5"
+  string kubernetes_version = 1;
+
+  // Resource requirements for the vcluster control plane.
+  ResourceRequirements resources = 2;
+
+  // Number of control plane replicas for high availability.
+  // 1 = single instance, 3 = HA mode
+  int32 replicas = 3;
+
+  // Network configuration for the virtual cluster.
+  NetworkConfig network = 4;
+
+  // Storage configuration for the virtual cluster.
+  StorageConfig storage = 5;
+
+  // Enable high availability mode.
+  bool enable_ha = 6;
+
+  // vcluster distribution type.
+  // Options: "k3s", "k8s", "k0s", "eks"
+  string distro = 7;
+
+  // Additional Helm values for vcluster customization.
+  string helm_values = 8;
+
+  // Sync configuration for resource synchronization.
+  SyncConfig sync = 9;
+
+  // Plugin configurations.
+  repeated PluginConfig plugins = 10;
+
+  // Ingress configuration for exposing the API server.
+  IngressConfig ingress = 11;
+
+  // Service account configuration.
+  ServiceAccountConfig service_account = 12;
+
+  // Isolation mode: "full", "lite"
+  string isolation_mode = 13;
+}
+
+// VClusterStatus represents the current observed state of a virtual cluster.
+message VClusterStatus {
+  // Current phase of the vcluster lifecycle.
+  Phase phase = 1;
+
+  // Human-readable message describing the current state.
+  string message = 2;
+
+  // Detailed reason for the current phase.
+  string reason = 3;
+
+  // List of conditions representing the vcluster's state.
+  repeated Condition conditions = 4;
+
+  // Base64-encoded kubeconfig for accessing the virtual cluster.
+  string kubeconfig = 5;
+
+  // API server endpoint URL.
+  string api_server_endpoint = 6;
+
+  // Current resource usage metrics.
+  ResourceUsage current_usage = 7;
+
+  // Number of ready replicas.
+  int32 ready_replicas = 8;
+
+  // Total number of desired replicas.
+  int32 total_replicas = 9;
+
+  // Timestamp when the vcluster became ready.
+  google.protobuf.Timestamp ready_time = 10;
+
+  // Last snapshot information.
+  SnapshotInfo last_snapshot = 11;
+
+  // Helm release information.
+  HelmReleaseInfo helm_release = 12;
+
+  // Observed generation for optimistic concurrency.
+  int64 observed_generation = 13;
+}
+
+// Phase represents the lifecycle phase of a vcluster.
+enum Phase {
+  // Unknown or unspecified phase.
+  PHASE_UNKNOWN = 0;
+
+  // VCluster is being created.
+  PHASE_CREATING = 1;
+
+  // VCluster is running and ready to accept workloads.
+  PHASE_RUNNING = 2;
+
+  // VCluster is suspended (control plane stopped).
+  PHASE_SUSPENDED = 3;
+
+  // VCluster is being scaled.
+  PHASE_SCALING = 4;
+
+  // VCluster is being deleted.
+  PHASE_DELETING = 5;
+
+  // VCluster encountered an error.
+  PHASE_ERROR = 6;
+
+  // VCluster is being updated.
+  PHASE_UPDATING = 7;
+
+  // VCluster is being restored from a snapshot.
+  PHASE_RESTORING = 8;
+
+  // VCluster is being snapshotted.
+  PHASE_SNAPSHOTTING = 9;
+
+  // VCluster is resuming from suspended state.
+  PHASE_RESUMING = 10;
+
+  // VCluster is pending resource allocation.
+  PHASE_PENDING = 11;
+}
+
+// ============================================================================
+// Supporting Messages
+// ============================================================================
+
+// ResourceRequirements defines CPU and memory requirements.
+message ResourceRequirements {
+  // CPU request (e.g., "100m", "1")
+  string cpu_request = 1;
+
+  // CPU limit (e.g., "500m", "2")
+  string cpu_limit = 2;
+
+  // Memory request (e.g., "128Mi", "1Gi")
+  string memory_request = 3;
+
+  // Memory limit (e.g., "512Mi", "2Gi")
+  string memory_limit = 4;
+
+  // Ephemeral storage request
+  string ephemeral_storage_request = 5;
+
+  // Ephemeral storage limit
+  string ephemeral_storage_limit = 6;
+}
+
+// ResourceUsage represents current resource consumption.
+message ResourceUsage {
+  // Current CPU usage
+  string cpu_usage = 1;
+
+  // Current memory usage
+  string memory_usage = 2;
+
+  // Current storage usage
+  string storage_usage = 3;
+
+  // Number of pods running in the vcluster
+  int32 pod_count = 4;
+
+  // Number of namespaces in the vcluster
+  int32 namespace_count = 5;
+
+  // Number of services in the vcluster
+  int32 service_count = 6;
+}
+
+// NetworkConfig defines network settings for the virtual cluster.
+message NetworkConfig {
+  // Pod CIDR for the virtual cluster
+  string pod_cidr = 1;
+
+  // Service CIDR for the virtual cluster
+  string service_cidr = 2;
+
+  // Enable network policies
+  bool enable_network_policies = 3;
+
+  // DNS service IP
+  string dns_service_ip = 4;
+
+  // Custom DNS configuration
+  DNSConfig dns = 5;
+}
+
+// DNSConfig defines DNS settings.
+message DNSConfig {
+  // Custom nameservers
+  repeated string nameservers = 1;
+
+  // Search domains
+  repeated string searches = 2;
+
+  // DNS options
+  repeated string options = 3;
+}
+
+// StorageConfig defines storage settings for the virtual cluster.
+message StorageConfig {
+  // Default storage class name
+  string default_storage_class = 1;
+
+  // Enable persistent storage for etcd
+  bool enable_persistence = 2;
+
+  // Persistent volume size for etcd (e.g., "5Gi")
+  string persistence_size = 3;
+
+  // Storage class for persistence
+  string persistence_storage_class = 4;
+}
+
+// SyncConfig defines what resources to sync between host and virtual cluster.
+message SyncConfig {
+  // Sync nodes from host cluster
+  bool sync_nodes = 1;
+
+  // Sync persistent volumes
+  bool sync_persistent_volumes = 2;
+
+  // Sync storage classes
+  bool sync_storage_classes = 3;
+
+  // Sync ingresses
+  bool sync_ingresses = 4;
+
+  // Sync priority classes
+  bool sync_priority_classes = 5;
+
+  // Sync network policies
+  bool sync_network_policies = 6;
+
+  // Sync pod disruption budgets
+  bool sync_pod_disruption_budgets = 7;
+
+  // Custom resource definitions to sync
+  repeated string custom_resources = 8;
+}
+
+// PluginConfig defines a vcluster plugin configuration.
+message PluginConfig {
+  // Plugin name
+  string name = 1;
+
+  // Plugin version
+  string version = 2;
+
+  // Plugin configuration as YAML/JSON string
+  string config = 3;
+
+  // Whether the plugin is enabled
+  bool enabled = 4;
+}
+
+// IngressConfig defines ingress settings for API server exposure.
+message IngressConfig {
+  // Enable ingress for API server
+  bool enabled = 1;
+
+  // Ingress class name
+  string ingress_class = 2;
+
+  // Hostname for the ingress
+  string hostname = 3;
+
+  // TLS configuration
+  TLSConfig tls = 4;
+
+  // Additional ingress annotations
+  map<string, string> annotations = 5;
+}
+
+// TLSConfig defines TLS settings.
+message TLSConfig {
+  // Enable TLS
+  bool enabled = 1;
+
+  // Secret name containing TLS certificate
+  string secret_name = 2;
+
+  // Use cert-manager for certificate management
+  bool use_cert_manager = 3;
+
+  // Cert-manager issuer name
+  string issuer_name = 4;
+}
+
+// ServiceAccountConfig defines service account settings.
+message ServiceAccountConfig {
+  // Service account name
+  string name = 1;
+
+  // Annotations for the service account
+  map<string, string> annotations = 2;
+
+  // Enable automounting of service account token
+  bool automount_token = 3;
+}
+
+// Condition represents a condition of the vcluster.
+message Condition {
+  // Type of condition (e.g., "Ready", "Synced", "ControlPlaneReady")
+  string type = 1;
+
+  // Status of the condition: "True", "False", "Unknown"
+  string status = 2;
+
+  // Reason for the condition's last transition
+  string reason = 3;
+
+  // Human-readable message
+  string message = 4;
+
+  // Last time the condition transitioned
+  google.protobuf.Timestamp last_transition_time = 5;
+
+  // Last time the condition was probed
+  google.protobuf.Timestamp last_probe_time = 6;
+}
+
+// SnapshotInfo contains information about a snapshot.
+message SnapshotInfo {
+  // Snapshot ID
+  string id = 1;
+
+  // Snapshot name
+  string name = 2;
+
+  // Creation timestamp
+  google.protobuf.Timestamp create_time = 3;
+
+  // Snapshot size in bytes
+  int64 size_bytes = 4;
+
+  // Snapshot status
+  string status = 5;
+}
+
+// HelmReleaseInfo contains Helm release information.
+message HelmReleaseInfo {
+  // Release name
+  string name = 1;
+
+  // Chart version
+  string chart_version = 2;
+
+  // App version
+  string app_version = 3;
+
+  // Release status
+  string status = 4;
+
+  // Revision number
+  int32 revision = 5;
+}
+
+// ============================================================================
+// Snapshot Messages
+// ============================================================================
+
+// Snapshot represents a point-in-time snapshot of a vcluster.
+message Snapshot {
+  // Unique identifier
+  string id = 1;
+
+  // Snapshot name
+  string name = 2;
+
+  // VCluster ID this snapshot belongs to
+  string vcluster_id = 3;
+
+  // VCluster name
+  string vcluster_name = 4;
+
+  // Namespace
+  string namespace = 5;
+
+  // Snapshot status
+  SnapshotStatus status = 6;
+
+  // Size in bytes
+  int64 size_bytes = 7;
+
+  // Creation timestamp
+  google.protobuf.Timestamp create_time = 8;
+
+  // Expiration timestamp
+  google.protobuf.Timestamp expire_time = 9;
+
+  // Labels
+  map<string, string> labels = 10;
+
+  // Description
+  string description = 11;
+
+  // Storage location URI
+  string storage_uri = 12;
+}
+
+// SnapshotStatus represents the status of a snapshot.
+enum SnapshotStatus {
+  SNAPSHOT_STATUS_UNKNOWN = 0;
+  SNAPSHOT_STATUS_CREATING = 1;
+  SNAPSHOT_STATUS_READY = 2;
+  SNAPSHOT_STATUS_FAILED = 3;
+  SNAPSHOT_STATUS_DELETING = 4;
+}
+
+// ============================================================================
+// Request/Response Messages
+// ============================================================================
+
+// CreateVClusterRequest is the request for creating a vcluster.
+message CreateVClusterRequest {
+  // Desired name for the vcluster (must be unique within namespace)
+  string name = 1;
+
+  // Target namespace on the host cluster
+  string namespace = 2;
+
+  // VCluster specification
+  VClusterSpec spec = 3;
+
+  // User-defined labels
+  map<string, string> labels = 4;
+
+  // Optional: client-generated unique request ID for idempotency
+  string request_id = 5;
+
+  // Wait for the vcluster to be ready before returning
+  bool wait_for_ready = 6;
+
+  // Timeout for waiting (in seconds)
+  int32 timeout_seconds = 7;
+}
+
+// CreateVClusterResponse is the response for creating a vcluster.
+message CreateVClusterResponse {
+  // The created vcluster
+  VCluster vcluster = 1;
+
+  // Operation ID for tracking async operations
+  string operation_id = 2;
+}
+
+// GetVClusterRequest is the request for getting a vcluster.
+message GetVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Optional: specific vcluster ID
+  string id = 3;
+
+  // Include kubeconfig in the response
+  bool include_kubeconfig = 4;
+}
+
+// GetVClusterResponse is the response for getting a vcluster.
+message GetVClusterResponse {
+  // The requested vcluster
+  VCluster vcluster = 1;
+}
+
+// ListVClustersRequest is the request for listing vclusters.
+message ListVClustersRequest {
+  // Filter by namespace (empty means all namespaces)
+  string namespace = 1;
+
+  // Maximum number of items to return
+  int32 page_size = 2;
+
+  // Page token from previous response
+  string page_token = 3;
+
+  // Label selector (e.g., "env=prod,team=backend")
+  string label_selector = 4;
+
+  // Filter by phase
+  repeated Phase phases = 5;
+
+  // Filter by owner
+  string owner = 6;
+
+  // Filter by project
+  string project = 7;
+
+  // Sort order: "name", "create_time", "-create_time"
+  string order_by = 8;
+}
+
+// ListVClustersResponse is the response for listing vclusters.
+message ListVClustersResponse {
+  // List of vclusters
+  repeated VCluster vclusters = 1;
+
+  // Token for fetching the next page
+  string next_page_token = 2;
+
+  // Total count of matching vclusters
+  int32 total_count = 3;
+}
+
+// UpdateVClusterRequest is the request for updating a vcluster.
+message UpdateVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Updated specification
+  VClusterSpec spec = 3;
+
+  // Fields to update (for partial updates)
+  google.protobuf.FieldMask update_mask = 4;
+
+  // Labels to update
+  map<string, string> labels = 5;
+}
+
+// UpdateVClusterResponse is the response for updating a vcluster.
+message UpdateVClusterResponse {
+  // The updated vcluster
+  VCluster vcluster = 1;
+
+  // Operation ID for tracking
+  string operation_id = 2;
+}
+
+// DeleteVClusterRequest is the request for deleting a vcluster.
+message DeleteVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Force delete even if resources exist
+  bool force = 3;
+
+  // Delete associated snapshots
+  bool delete_snapshots = 4;
+
+  // Grace period in seconds
+  int32 grace_period_seconds = 5;
+}
+
+// DeleteVClusterResponse is the response for deleting a vcluster.
+message DeleteVClusterResponse {
+  // Operation ID for tracking
+  string operation_id = 1;
+
+  // Deletion initiated timestamp
+  google.protobuf.Timestamp delete_time = 2;
+}
+
+// ScaleVClusterRequest is the request for scaling a vcluster.
+message ScaleVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // New resource requirements
+  ResourceRequirements resources = 3;
+
+  // New replica count for control plane
+  int32 replicas = 4;
+}
+
+// ScaleVClusterResponse is the response for scaling a vcluster.
+message ScaleVClusterResponse {
+  // The scaled vcluster
+  VCluster vcluster = 1;
+
+  // Operation ID for tracking
+  string operation_id = 2;
+}
+
+// SuspendVClusterRequest is the request for suspending a vcluster.
+message SuspendVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Drain workloads before suspending
+  bool drain_workloads = 3;
+
+  // Timeout for draining (in seconds)
+  int32 drain_timeout_seconds = 4;
+
+  // Create a snapshot before suspending
+  bool create_snapshot = 5;
+
+  // Snapshot name (if create_snapshot is true)
+  string snapshot_name = 6;
+}
+
+// SuspendVClusterResponse is the response for suspending a vcluster.
+message SuspendVClusterResponse {
+  // The suspended vcluster
+  VCluster vcluster = 1;
+
+  // Snapshot created (if requested)
+  Snapshot snapshot = 2;
+
+  // Operation ID for tracking
+  string operation_id = 3;
+}
+
+// ResumeVClusterRequest is the request for resuming a vcluster.
+message ResumeVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Reconcile workloads after resuming
+  bool reconcile_workloads = 3;
+}
+
+// ResumeVClusterResponse is the response for resuming a vcluster.
+message ResumeVClusterResponse {
+  // The resumed vcluster
+  VCluster vcluster = 1;
+
+  // Operation ID for tracking
+  string operation_id = 2;
+}
+
+// SnapshotVClusterRequest is the request for creating a snapshot.
+message SnapshotVClusterRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Snapshot name
+  string snapshot_name = 3;
+
+  // Snapshot description
+  string description = 4;
+
+  // Retention period in hours (0 = indefinite)
+  int32 retention_hours = 5;
+
+  // Labels for the snapshot
+  map<string, string> labels = 6;
+
+  // Include workload state
+  bool include_workloads = 7;
+}
+
+// SnapshotVClusterResponse is the response for creating a snapshot.
+message SnapshotVClusterResponse {
+  // The created snapshot
+  Snapshot snapshot = 1;
+
+  // Operation ID for tracking
+  string operation_id = 2;
+}
+
+// RestoreVClusterRequest is the request for restoring from a snapshot.
+message RestoreVClusterRequest {
+  // VCluster name to restore
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Snapshot ID to restore from
+  string snapshot_id = 3;
+
+  // Create a new vcluster instead of overwriting
+  bool create_new = 4;
+
+  // New vcluster name (if create_new is true)
+  string new_name = 5;
+
+  // New namespace (if create_new is true)
+  string new_namespace = 6;
+
+  // Restore workloads
+  bool restore_workloads = 7;
+}
+
+// RestoreVClusterResponse is the response for restoring from a snapshot.
+message RestoreVClusterResponse {
+  // The restored vcluster
+  VCluster vcluster = 1;
+
+  // Operation ID for tracking
+  string operation_id = 2;
+}
+
+// GetVClusterKubeconfigRequest is the request for getting kubeconfig.
+message GetVClusterKubeconfigRequest {
+  // VCluster name
+  string name = 1;
+
+  // Namespace
+  string namespace = 2;
+
+  // Kubeconfig format: "default", "exec", "token"
+  string format = 3;
+
+  // Validity duration for token-based kubeconfig (in hours)
+  int32 validity_hours = 4;
+}
+
+// GetVClusterKubeconfigResponse is the response for getting kubeconfig.
+message GetVClusterKubeconfigResponse {
+  // Base64-encoded kubeconfig
+  string kubeconfig = 1;
+
+  // API server endpoint
+  string api_server_endpoint = 2;
+
+  // Expiration time (for token-based kubeconfig)
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// WatchVClusterRequest is the request for watching vcluster updates.
+message WatchVClusterRequest {
+  // VCluster name (empty for all in namespace)
+  string name = 1;
+
+  // Namespace (empty for all namespaces)
+  string namespace = 2;
+
+  // Label selector
+  string label_selector = 3;
+
+  // Resource version to start watching from
+  string resource_version = 4;
+}
+
+// WatchVClusterResponse is a stream response for vcluster updates.
+message WatchVClusterResponse {
+  // Event type
+  WatchEventType type = 1;
+
+  // The vcluster object
+  VCluster vcluster = 2;
+}
+
+// WatchEventType represents the type of watch event.
+enum WatchEventType {
+  WATCH_EVENT_TYPE_UNKNOWN = 0;
+  WATCH_EVENT_TYPE_ADDED = 1;
+  WATCH_EVENT_TYPE_MODIFIED = 2;
+  WATCH_EVENT_TYPE_DELETED = 3;
+  WATCH_EVENT_TYPE_ERROR = 4;
+}
+
+// ============================================================================
+// Snapshot Service Messages
+// ============================================================================
+
+// SnapshotService provides APIs for managing vcluster snapshots.
+service SnapshotService {
+  // ListSnapshots lists all snapshots for a vcluster.
+  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);
+
+  // GetSnapshot retrieves a specific snapshot.
+  rpc GetSnapshot(GetSnapshotRequest) returns (GetSnapshotResponse);
+
+  // DeleteSnapshot deletes a snapshot.
+  rpc DeleteSnapshot(DeleteSnapshotRequest) returns (DeleteSnapshotResponse);
+}
+
+// ListSnapshotsRequest is the request for listing snapshots.
+message ListSnapshotsRequest {
+  // Filter by vcluster name
+  string vcluster_name = 1;
+
+  // Filter by namespace
+  string namespace = 2;
+
+  // Page size
+  int32 page_size = 3;
+
+  // Page token
+  string page_token = 4;
+
+  // Label selector
+  string label_selector = 5;
+}
+
+// ListSnapshotsResponse is the response for listing snapshots.
+message ListSnapshotsResponse {
+  // List of snapshots
+  repeated Snapshot snapshots = 1;
+
+  // Next page token
+  string next_page_token = 2;
+
+  // Total count
+  int32 total_count = 3;
+}
+
+// GetSnapshotRequest is the request for getting a snapshot.
+message GetSnapshotRequest {
+  // Snapshot ID
+  string id = 1;
+
+  // Or snapshot name with namespace
+  string name = 2;
+  string namespace = 3;
+}
+
+// GetSnapshotResponse is the response for getting a snapshot.
+message GetSnapshotResponse {
+  // The snapshot
+  Snapshot snapshot = 1;
+}
+
+// DeleteSnapshotRequest is the request for deleting a snapshot.
+message DeleteSnapshotRequest {
+  // Snapshot ID
+  string id = 1;
+
+  // Force delete
+  bool force = 2;
+}
+
+// DeleteSnapshotResponse is the response for deleting a snapshot.
+message DeleteSnapshotResponse {
+  // Deletion timestamp
+  google.protobuf.Timestamp delete_time = 1;
+}
