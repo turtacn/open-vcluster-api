@@ -9,7 +9,7 @@
 [![Protobuf](https://img.shields.io/badge/Protobuf-v3-blue)](https://protobuf.dev/)
 [![vcluster](https://img.shields.io/badge/vcluster-compatible-green)](https://www.vcluster.com/)
 
-[English](#english) | [中文](#中文)
+[English](#english) | [中文](#中文) | [QuickStart](QuickStart.md)
 
 </div>
 
