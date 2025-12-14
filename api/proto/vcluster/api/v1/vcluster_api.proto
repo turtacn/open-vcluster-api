@@ -195,7 +195,7 @@ message VClusterStatus {
 // Phase represents the lifecycle phase of a vcluster.
 enum Phase {
   // Unknown or unspecified phase.
-  PHASE_UNKNOWN = 0;
+  PHASE_UNSPECIFIED = 0;
 
   // VCluster is being created.
   PHASE_CREATING = 1;
@@ -511,7 +511,7 @@ message Snapshot {
 
 // SnapshotStatus represents the status of a snapshot.
 enum SnapshotStatus {
-  SNAPSHOT_STATUS_UNKNOWN = 0;
+  SNAPSHOT_STATUS_UNSPECIFIED = 0;
   SNAPSHOT_STATUS_CREATING = 1;
   SNAPSHOT_STATUS_READY = 2;
   SNAPSHOT_STATUS_FAILED = 3;
@@ -866,7 +866,7 @@ message WatchVClusterResponse {
 
 // WatchEventType represents the type of watch event.
 enum WatchEventType {
-  WATCH_EVENT_TYPE_UNKNOWN = 0;
+  WATCH_EVENT_TYPE_UNSPECIFIED = 0;
   WATCH_EVENT_TYPE_ADDED = 1;
   WATCH_EVENT_TYPE_MODIFIED = 2;
   WATCH_EVENT_TYPE_DELETED = 3;

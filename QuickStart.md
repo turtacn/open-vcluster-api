@@ -8,7 +8,7 @@ Before you begin, ensure you have the following installed:
 
 *   **Go 1.21+** (Tested with Go 1.24.3)
 *   **Protocol Buffers Compiler (`protoc`)**
-    *   Ubuntu/Debian: `sudo apt install -y protobuf-compiler`
+    *   Ubuntu/Debian: `sudo apt install -y protobuf-compiler && sudo apt-get install -y npm`
     *   macOS: `brew install protobuf`
     *   Manual: Download from [GitHub Releases](https://github.com/protocolbuffers/protobuf/releases)
 *   **Make**

@@ -60,7 +60,7 @@ proto:
 			--go_opt=paths=source_relative \
 			--go-grpc_out=api/v1 \
 			--go-grpc_opt=paths=source_relative \
-			$(API_DIR)/*.proto; \
+			$(API_DIR)/vcluster/api/v1/*.proto; \
 	fi
 
 # Generate SDKs
@@ -103,7 +103,7 @@ lint:
 		echo "golangci-lint not installed, skipping..."; \
 	fi
 	@if command -v $(BUF) >/dev/null 2>&1; then \
-		$(BUF) lint; \
+		$(BUF) lint $(API_DIR); \
 	else \
 		echo "buf not installed, skipping proto lint..."; \
 	fi

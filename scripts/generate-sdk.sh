@@ -78,7 +78,7 @@ generate_go() {
             --go_opt=paths=source_relative \
             --go-grpc_out="$GO_OUT" \
             --go-grpc_opt=paths=source_relative \
-            "$PROTO_DIR"/*.proto
+            "$PROTO_DIR"/vcluster/api/v1/*.proto
     fi
 
     # Generate go.mod for the SDK
@@ -136,7 +136,7 @@ generate_typescript() {
             --js_out=import_style=commonjs,binary:"$TS_OUT/src" \
             --grpc_out=grpc_js:"$TS_OUT/src" \
             --plugin=protoc-gen-grpc="$TS_OUT/node_modules/.bin/grpc_tools_node_protoc_plugin" \
-            "$PROTO_DIR"/*.proto
+            "$PROTO_DIR"/vcluster/api/v1/*.proto
 
         # Generate TypeScript definitions
         $GRPC_TOOLS \
@@ -144,14 +144,14 @@ generate_typescript() {
             --proto_path="$PROJECT_ROOT/third_party" \
             --plugin=protoc-gen-ts="$PROTOC_TS" \
             --ts_out=grpc_js:"$TS_OUT/src" \
-            "$PROTO_DIR"/*.proto
+            "$PROTO_DIR"/vcluster/api/v1/*.proto
     else
         log_warn "grpc_tools_node_protoc not found, using protoc directly..."
         protoc \
             --proto_path="$PROTO_DIR" \
             --proto_path="$PROJECT_ROOT/third_party" \
             --js_out=import_style=commonjs,binary:"$TS_OUT/src" \
-            "$PROTO_DIR"/*.proto
+            "$PROTO_DIR"/vcluster/api/v1/*.proto
     fi
 
     # Create package.json
@@ -245,7 +245,7 @@ generate_python() {
         --python_out="$PY_OUT/open_vcluster_api" \
         --grpc_python_out="$PY_OUT/open_vcluster_api" \
         --pyi_out="$PY_OUT/open_vcluster_api" \
-        "$PROTO_DIR"/*.proto
+        "$PROTO_DIR"/vcluster/api/v1/*.proto
 
     # Create __init__.py
     cat > "$PY_OUT/open_vcluster_api/__init__.py" << EOF
