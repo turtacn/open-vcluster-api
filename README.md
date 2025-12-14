@@ -126,11 +126,8 @@ make generate
 # Build examples
 make build
 
-# Run server
-make run-server
-
-# Run client (in another terminal)
-make run-client
+# Run all
+make examples
 ```
 
 ### Core API Operations
