@@ -59,7 +59,7 @@ generate_go() {
 
     if [ "$USE_BUF" = true ]; then
         cd "$PROJECT_ROOT"
-        buf generate --template tools/buf.gen.go.yaml
+        buf generate "$PROTO_DIR" --template tools/buf.gen.go.yaml
     else
         # Check Go plugins
         if ! command -v protoc-gen-go &> /dev/null; then
@@ -236,7 +236,7 @@ generate_python() {
 
     # Install required packages
     log_info "Installing Python dependencies..."
-    pip3 install --quiet grpcio grpcio-tools
+    pip3 install --quiet --break-system-packages grpcio grpcio-tools
 
     # Generate Python code
     python3 -m grpc_tools.protoc \

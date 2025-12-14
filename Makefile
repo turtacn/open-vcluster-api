@@ -52,7 +52,7 @@ proto:
 	@echo "Generating protobuf code..."
 	@mkdir -p api/v1
 	@if command -v $(BUF) >/dev/null 2>&1; then \
-		cd tools && $(BUF) generate --template buf.gen.yaml; \
+		$(BUF) generate $(API_DIR) --template tools/buf.gen.yaml; \
 	else \
 		PATH=$$(go env GOPATH)/bin:$$PATH $(PROTOC) \
 			--proto_path=$(API_DIR) \
