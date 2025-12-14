@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-vcluster-api"
+version = "0.1.0"
+description = "Python SDK for open-vcluster-api"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "grpcio>=1.59.0",
+    "protobuf>=4.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/turtacn/open-vcluster-api"
+Repository = "https://github.com/turtacn/open-vcluster-api.git"
