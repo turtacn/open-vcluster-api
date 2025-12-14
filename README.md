@@ -101,6 +101,8 @@ graph TB
 
 ### Quick Start
 
+Please refer to [QuickStart.md](QuickStart.md) for detailed instructions on how to build, test, and run the project.
+
 #### Prerequisites
 
 * Go 1.21+
@@ -114,37 +116,21 @@ graph TB
 git clone https://github.com/turtacn/open-vcluster-api.git
 cd open-vcluster-api
 
-# Generate Go code using buf
-cd tools && buf generate
-
-# Or using protoc directly
-protoc --go_out=. --go-grpc_out=. api/proto/vcluster_api.proto
+# Generate code
+make generate
 ```
 
-#### Generate Multi-Language SDKs
+#### Run Examples
 
 ```bash
-# Generate Go, TypeScript, and Python SDKs
-./scripts/generate-sdk.sh all
+# Build examples
+make build
 
-# Generate specific language
-./scripts/generate-sdk.sh go
-./scripts/generate-sdk.sh typescript
-./scripts/generate-sdk.sh python
-```
+# Run server
+make run-server
 
-#### Run Example Server
-
-```bash
-cd examples/simple-server-go
-go run main.go
-```
-
-#### Run Example Client
-
-```bash
-cd examples/simple-client-go
-go run main.go
+# Run client (in another terminal)
+make run-client
 ```
 
 ### Core API Operations
