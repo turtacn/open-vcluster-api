@@ -1,0 +1,17 @@
+# Copyright (c) 2024 turtacn
+# SPDX-License-Identifier: MIT
+
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/turtacn/open-vcluster-api/sdk/go
+plugins:
+  - plugin: buf.build/protocolbuffers/go
+    out: sdk/go
+    opt:
+      - paths=source_relative
+  - plugin: buf.build/grpc/go
+    out: sdk/go
+    opt:
+      - paths=source_relative

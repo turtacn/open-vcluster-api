@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+docs/
+*.md
+
+# IDE
+.idea/
+.vscode/
+ai/
+
+# Tests
+*_test.go
+testdata/
+
+# Build artifacts
+bin/
+dist/
+
+# SDK (build in container)
+sdk/
+
+# Examples (build separately)
+examples/
+
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+venv/

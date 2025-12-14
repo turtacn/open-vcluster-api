@@ -1,0 +1,18 @@
+# Copyright (c) 2024 turtacn
+# SPDX-License-Identifier: MIT
+
+version: v1
+name: buf.build/turtacn/open-vcluster-api
+deps:
+  - buf.build/googleapis/googleapis
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+  except:
+    - PACKAGE_VERSION_SUFFIX
+  rpc_allow_same_request_response: false
+  rpc_allow_google_protobuf_empty_requests: true
+  rpc_allow_google_protobuf_empty_responses: true
