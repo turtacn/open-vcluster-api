@@ -236,7 +236,7 @@ generate_python() {
 
     # Install required packages
     log_info "Installing Python dependencies..."
-    pip3 install --quiet --break-system-packages grpcio grpcio-tools
+    pip3 install --quiet --break-system-packages --ignore-installed grpcio grpcio-tools
 
     # Generate Python code
     python3 -m grpc_tools.protoc \
