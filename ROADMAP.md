@@ -1103,14 +1103,14 @@ flowchart TB
   end
 
   subgraph ControlPlane[RuntimeAI Control Plane]
-    API[Unified Runtime API\n- Runtimes\n- Lifecycle\n- Intent\n- Actions\n- Events\n- Policies]
-    ENG[Runtime Engine\n- Policy\n- Planning\n- Validation\n- Execution]
+    API[Unified Runtime API<br>- Runtimes<br>- Lifecycle<br>- Intent<br>- Actions<br>- Events<br>- Policies]
+    ENG[Runtime Engine<br>- Policy<br>- Planning<br>- Validation<br>- Execution]
   end
 
   subgraph Backends
-    VM[VM Backend\n(OpenStack/VMware/KVM/...)]
-    VC[vCluster Backend\n(Loft vcluster)]
-    K8S[Kubernetes Backend\n(optional adapters)]
+    VM[VM Backend<br>（OpenStack/VMware/KVM/...）]
+    VC[vCluster Backend<br>（Loft vcluster）]
+    K8S[Kubernetes Backend<br>（optional adapters）]
   end
 
   H --> API
